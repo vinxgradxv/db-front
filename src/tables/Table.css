@@ -1,75 +1,132 @@
-table, th, td {
-    border: 1px solid black;
+/* Общие стили для кнопок */
+button {
+    background-color: #0066cc;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
+button:hover {
+    background-color: #004a99;
+    transform: scale(1.05);
+}
+
+/* Таблица */
 table {
-    width: 50%;
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-th, td {
-    padding: 15px;
-    text-align: left;
+table, th, td {
+    border: 1px solid #ddd;
 }
 
 th {
-    background-color: #8db2fa;
-}
-tr {
-    background-color: #878787;
-}
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-table, th, td {
-    border: 1px solid black;
-}
-
-th, td {
-    text-align: left;
-}
-
-.Table-header {
-    font-size: 24px;
-}
-
-
-form {
-    width: 300px;
-    margin: 0 auto;
-}
-
-form label {
-    display: block;
-    margin-bottom: 10px;
-}
-
-form input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-form button {
-    background-color: #007a7e;
+    background-color: #4a90e2;
     color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
+    text-transform: uppercase;
+    padding: 12px;
+    text-align: center;
+}
+
+td {
+    background-color: #f9f9f9;
+    text-align: center;
+    padding: 10px;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Заголовок таблицы */
+.Table-header {
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #333;
+}
+
+/* Кнопка добавления записи */
+.add-button {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 50%;
+    font-size: 18px;
+    text-align: center;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, transform 0.2s;
+    position: absolute;
+    top: 20px;
+    right: 20px;
 }
 
-form input[type="submit"]:hover {
-    background-color: #005653;
+.add-button:hover {
+    background-color: #3e8e41;
+    transform: scale(1.1);
 }
 
-.content-div {
+/* Левое меню */
+.sidebar {
+    background-color: #333;
+    padding: 10px 0;
+    width: 70px;
+    height: 100vh;
+    position: fixed;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
-.right-div, .left-div {
-    margin-left: 50px;
-    margin-right: 50px;
+.sidebar img {
+    width: 40px;
+    height: 40px;
+    filter: invert(100%);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.sidebar img:hover {
+    transform: scale(1.1);
+}
+
+/* Основной контейнер */
+.main-container {
+    margin-left: 90px;
+    padding: 20px;
+}
+
+/* Для адаптивности */
+@media (max-width: 768px) {
+    table {
+        font-size: 12px;
+    }
+
+    .sidebar {
+        width: 50px;
+    }
+
+    .sidebar img {
+        width: 30px;
+        height: 30px;
+    }
 }
