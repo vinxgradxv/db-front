@@ -11,6 +11,7 @@ const LoginPage = () => {
     adminId: 0,
     email: "",
     password: "",
+    isAdmin: false
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const LoginPage = () => {
       adminId: 0,
       email: "",
       password: "",
+      isAdmin: false
     });
   };
 
@@ -94,7 +96,11 @@ const LoginPage = () => {
         if (activeTab === "login") {
           // Сохраняем токен и переходим на основную страницу
           localStorage.setItem("authToken", data.access_token);
-          navigate("/main");
+          if (formData.isAdmin) {
+            navigate("/main");
+          } else {
+          navigate("/main-employee");
+          }
         } else {
           alert("Регистрация успешна!");
           handleTabChange("login");
@@ -155,6 +161,16 @@ const LoginPage = () => {
                 required
               />
             </div>
+            <div className="form-group checkbox-group">
+            <input
+              type="checkbox"
+              id="isAdmin"
+              name="isAdmin"
+              checked={formData.isAdmin}
+              onChange={handleInputChange}
+            />
+            <label htmlFor="isAdmin">Вы являетесь администратором?</label>
+          </div>
           </>
         )}
 

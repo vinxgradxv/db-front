@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LoginPage from "./LoginPage";
 import MainPage from "./MainPage";
 import ProtectedRoute from "./ProtectedRoute";
+import MainPageEmployee from "./MainPageEmployee";
 
 const App = () => {
   return (
@@ -15,6 +16,14 @@ const App = () => {
         <MainPage />
       </ProtectedRoute>
     }
+  />
+  <Route
+  path="/main-employee"
+  element={
+    <ProtectedRoute>
+      <MainPageEmployee />
+    </ProtectedRoute>
+  }
   />
 </Routes>
     </Router>
