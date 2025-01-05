@@ -4,6 +4,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import './Table.css';
 import plusLogo from "../icons/icons8-plus-64.png";
 
+const token = localStorage.getItem("authToken");
+
 const Modal = ({ isOpen, onClose, children }) => {
     if (!isOpen) {
         return null;
@@ -80,11 +82,12 @@ const Form = () => {
             productivityStatisticsId,
         };
 
-        fetch("http://localhost:8080/task/add", {
+        fetch("http://localhost:8080/tasks", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-            },
+                Authorization: `Bearer ${token}`,
+            },        
             body: JSON.stringify(data),
         })
             .then((response) => response.json())
@@ -141,7 +144,13 @@ export default function TaskBoard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchData = () => {
-        fetch("http://localhost:8080/tasks")
+        fetch("http://localhost:8080/tasks", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },        
+        })
             .then((response) => response.json())
             .then((actualData) => {
                 setData(actualData.taskResponses);
@@ -158,12 +167,12 @@ export default function TaskBoard() {
     const handleStatusChange = (task, newStatus) => {
         const updatedTask = { ...task, status: newStatus };
 
-        fetch(`http://localhost:8080/task/update/${task.id}`, {
+        fetch(`http://localhost:8080/tasks/${task.id}/${newStatus}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedTask),
+                Authorization: `Bearer ${token}`,
+              },
         })
             .then((response) => response.json())
             .then(() => {
