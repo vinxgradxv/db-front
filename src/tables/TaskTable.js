@@ -1,242 +1,205 @@
-import React, { useState, useEffect } from "react";
-import "./Table.css";
+import React, { useState, useEffect } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import './Table.css';
 import plusLogo from "../icons/icons8-plus-64.png";
 
 const Modal = ({ isOpen, onClose, children }) => {
-  if (!isOpen) {
-    return null;
-  }
+    if (!isOpen) {
+        return null;
+    }
 
-  return (
-    <div className="modal">
-      <div className="modal-content">
-        <button onClick={onClose}>Close</button>
-        {children}
-      </div>
-    </div>
-  );
+    return (
+        <div className="modal">
+            <div className="modal-content">
+                <button onClick={onClose}>Close</button>
+                {children}
+            </div>
+        </div>
+    );
+};
+
+const TaskCard = ({ task, onStatusChange }) => {
+    const [{ isDragging }, drag] = useDrag({
+        type: "TASK",
+        item: task,
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    });
+
+    return (
+        <div
+            ref={drag}
+            className="task-card"
+            style={{
+                opacity: isDragging ? 0.5 : 1,
+            }}
+        >
+            <p>Start Date: {task.startDate}</p>
+            <p>End Date: {task.endDate}</p>
+            <p>Complexity: {task.complexity}</p>
+            <p>Status: {task.status}</p>
+            <p>Productivity ID: {task.productivityStatisticsId}</p>
+        </div>
+    );
+};
+
+const Column = ({ status, tasks, onDrop }) => {
+    const [, drop] = useDrop({
+        accept: "TASK",
+        drop: (item) => onDrop(item, status),
+    });
+
+    return (
+        <div ref={drop} className="task-column">
+            <h3 className="task-header">{status}</h3>
+            {/*<TaskCard key={1} task={{startDate: '123', endDate: '123', complexity: '1', status, productivityStatisticsId: 2}}/>*/}
+            {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
+            ))}
+        </div>
+    );
 };
 
 const Form = () => {
-  const [startDate, setStartDate] = useState();
-  const [endDate, setEndDate] = useState();
-  const [complexity, setComplexity] = useState();
-  const [status, setStatus] = useState();
-  const [productivityStatisticsId, setProductivityStatisticsId] = useState();
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [complexity, setComplexity] = useState("");
+    const [status, setStatus] = useState("To Do");
+    const [productivityStatisticsId, setProductivityStatisticsId] = useState("");
 
-  const handleFormSubmit = (event) => {
-    event.preventDefault();
+    const handleFormSubmit = (event) => {
+        event.preventDefault();
 
-    const data = {
-      startDate: startDate,
-      endDate: endDate,
-      complexity: complexity,
-      status: status,
-      productivityStatisticsId: productivityStatisticsId,
+        const data = {
+            startDate,
+            endDate,
+            complexity,
+            status,
+            productivityStatisticsId,
+        };
+
+        fetch("http://localhost:8080/task/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => response.json())
+            .then(() => {
+                alert("Task added successfully");
+                window.location.reload(); // To refresh the task list
+            })
+            .catch((error) => {
+                alert("Error: " + error);
+            });
     };
-    const token = localStorage.getItem("authToken");
 
-    fetch("http://localhost:8080/tasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        alert("Успех");
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        alert("Error: " + error);
-        console.error("Error:", error);
-      });
-  };
-
-  return (
-    <form onSubmit={handleFormSubmit}>
-      <div className="form-group">
-        <label htmlFor="startDate">startDate</label>
-        <input
-          type="date"
-          className="form-control"
-          id="startDate"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="endDate">endDate</label>
-        <input
-          type="date"
-          className="form-control"
-          id="endDate"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="complexity">complexity</label>
-        <input
-          type={"number"}
-          className="form-control"
-          id="complexity"
-          value={complexity}
-          onChange={(e) => setComplexity(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="status">status</label>
-        <input
-          className="form-control"
-          id="status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="productivityStatisticsId">
-          productivityStatisticsId
-        </label>
-        <input
-          type={"number"}
-          className="form-control"
-          id="productivityStatisticsId"
-          value={productivityStatisticsId}
-          onChange={(e) => setProductivityStatisticsId(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <button className="form-control btn btn-primary" type="submit">
-          Submit
-        </button>
-      </div>
-    </form>
-  );
+    return (
+        <form onSubmit={handleFormSubmit}>
+            <div>
+                <label>Start Date:</label>
+                <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                />
+            </div>
+            <div>
+                <label>End Date:</label>
+                <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                />
+            </div>
+            <div>
+                <label>Complexity:</label>
+                <input
+                    type="number"
+                    value={complexity}
+                    onChange={(e) => setComplexity(e.target.value)}
+                />
+            </div>
+            <div>
+                <label>Productivity ID:</label>
+                <input
+                    type="number"
+                    value={productivityStatisticsId}
+                    onChange={(e) => setProductivityStatisticsId(e.target.value)}
+                />
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    );
 };
 
-export default function TaskTable() {
-  const [data, setData] = useState([]);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+export default function TaskBoard() {
+    const [data, setData] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-  //сортировка
-  const handleSort = (key) => {
-    let direction = "ascending";
+    const fetchData = () => {
+        fetch("http://localhost:8080/tasks")
+            .then((response) => response.json())
+            .then((actualData) => {
+                setData(actualData.taskResponses);
+            })
+            .catch((err) => {
+                console.error(err.message);
+            });
+    };
 
-    // Циклическое переключение состояний
-    if (sortConfig.key === key) {
-      if (sortConfig.direction === "ascending") {
-        direction = "descending";
-      } else if (sortConfig.direction === "descending") {
-        direction = null; // Сброс сортировки
-      }
-    }
+    useEffect(() => {
+        fetchData();
+    }, []);
 
-    setSortConfig({ key, direction });
+    const handleStatusChange = (task, newStatus) => {
+        const updatedTask = { ...task, status: newStatus };
 
-    // Применение сортировки
-    if (direction) {
-      const sortedData = [...data].sort((a, b) => {
-        if (a[key] < b[key]) return direction === "ascending" ? -1 : 1;
-        if (a[key] > b[key]) return direction === "ascending" ? 1 : -1;
-        return 0;
-      });
-      setData(sortedData);
-    } else {
-      // Если сортировка сброшена, верните данные к исходному состоянию
-      fetchData(); // Или храните оригинальные данные для сброса
-    }
-  };
+        fetch(`http://localhost:8080/task/update/${task.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedTask),
+        })
+            .then((response) => response.json())
+            .then(() => {
+                fetchData();
+            })
+            .catch((error) => {
+                console.error("Error updating task:", error);
+            });
+    };
 
-  const getSortIndicator = (key) => {
-    if (sortConfig.key === key) {
-      if (sortConfig.direction === "ascending") return "↑";
-      if (sortConfig.direction === "descending") return "↓";
-    }
-    return ""; // Пусто для состояния "без сортировки"
-  };
+    const groupedTasks = {
+        "To Do": data.filter((task) => task.status === "To Do"),
+        "In Progress": data.filter((task) => task.status === "In Progress"),
+        Done: data.filter((task) => task.status === "Done"),
+    };
 
-  //сортировка
-
-  const fetchData = () => {
-    const token = localStorage.getItem("authToken");
-
-    fetch(`http://localhost:8080/tasks`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((actualData) => {
-        console.log(actualData);
-        setData(actualData.taskResponses);
-        console.log(data);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  return (
-    <div className={"content-div"}>
-      <div className="left-div">
-        <p className="Table-header">Рабочие задачи</p>
-        <tbody>
-          <tr>
-            <th onClick={() => handleSort("startDate")}>
-              Start Date {getSortIndicator("startDate")}
-            </th>
-            <th onClick={() => handleSort("endDate")}>
-              End Date {getSortIndicator("endDate")}
-            </th>
-            <th onClick={() => handleSort("complexity")}>
-              Complexity {getSortIndicator("complexity")}
-            </th>
-            <th onClick={() => handleSort("status")}>
-              Status {getSortIndicator("status")}
-            </th>
-            <th onClick={() => handleSort("ProductivityStatisticsId")}>
-              Productivity Statistics Id{" "}
-              {getSortIndicator("ProductivityStatisticsId")}
-            </th>
-          </tr>
-          {data.map((item, index) => (
-            <tr key={index}>
-              <td>{item.startDate}</td>
-              <td>{item.endDate}</td>
-              <td>{item.complexity}</td>
-              <td>{item.status}</td>
-              <td>{item.productivityStatisticsId}</td>
-            </tr>
-          ))}
-        </tbody>
-      </div>
-      <div className={"right-div"}>
-        <button onClick={openModal}>
-          <img src={plusLogo} alt="add entity" />
-        </button>
-        <Modal isOpen={isModalOpen} onClose={closeModal}>
-          <Form />
-        </Modal>
-      </div>
-    </div>
-  );
+    return (
+        <DndProvider backend={HTML5Backend}>
+            <div className="task-board">
+                <div className="columns">
+                    {Object.keys(groupedTasks).map((status) => (
+                        <Column
+                            key={status}
+                            status={status}
+                            tasks={groupedTasks[status]}
+                            onDrop={handleStatusChange}
+                        />
+                    ))}
+                </div>
+                <button className="plus-button" onClick={() => setIsModalOpen(true)}>
+                    <img src={plusLogo} alt="Add Task" />
+                </button>
+                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                    <Form />
+                </Modal>
+            </div>
+        </DndProvider>
+    );
 }
