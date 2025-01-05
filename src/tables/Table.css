@@ -73,3 +73,47 @@ form input[type="submit"]:hover {
     margin-left: 50px;
     margin-right: 50px;
 }
+
+.columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.task-board {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+}
+
+.task-column {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 8px;
+    height: fit-content;
+}
+
+.plus-button {
+    margin-left: 40px;
+    margin-right: 20px;
+    width: 80px;
+    height: 80px;
+}
+
+.task-card {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: grab;
+}
+
+.task-card p {
+    margin: 5px 0;
+}
+

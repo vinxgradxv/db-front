@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import './Table.css';
 import plusLogo from "../icons/icons8-plus-64.png";
 
+const token = localStorage.getItem("authToken");
 
 const Modal = ({ isOpen, onClose, children }) => {
     if (!isOpen) {
@@ -18,88 +21,142 @@ const Modal = ({ isOpen, onClose, children }) => {
     );
 };
 
+const TaskCard = ({ task, onStatusChange }) => {
+    const [{ isDragging }, drag] = useDrag({
+        type: "TASK",
+        item: task,
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging(),
+        }),
+    });
+
+    return (
+        <div
+            ref={drag}
+            className="task-card"
+            style={{
+                opacity: isDragging ? 0.5 : 1,
+            }}
+        >
+            <p>Start Date: {task.startDate}</p>
+            <p>End Date: {task.endDate}</p>
+            <p>Complexity: {task.complexity}</p>
+            <p>Status: {task.status}</p>
+            <p>Productivity ID: {task.productivityStatisticsId}</p>
+        </div>
+    );
+};
+
+const Column = ({ status, tasks, onDrop }) => {
+    const [, drop] = useDrop({
+        accept: "TASK",
+        drop: (item) => onDrop(item, status),
+    });
+
+    return (
+        <div ref={drop} className="task-column">
+            <h3 className="task-header">{status}</h3>
+            {/*<TaskCard key={1} task={{startDate: '123', endDate: '123', complexity: '1', status, productivityStatisticsId: 2}}/>*/}
+            {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
+            ))}
+        </div>
+    );
+};
+
 const Form = () => {
-    const [startDate, setStartDate] = useState();
-    const [endDate, setEndDate] = useState();
-    const [complexity, setComplexity] = useState();
-    const [status, setStatus] = useState();
-    const [productivityStatisticsId, setProductivityStatisticsId] = useState();
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [complexity, setComplexity] = useState("");
+    const [status, setStatus] = useState("To Do");
+    const [productivityStatisticsId, setProductivityStatisticsId] = useState("");
 
     const handleFormSubmit = (event) => {
         event.preventDefault();
 
         const data = {
-            startDate: startDate,
-            endDate: endDate,
-            complexity: complexity,
-            status: status,
-            productivityStatisticsId: productivityStatisticsId
+            startDate,
+            endDate,
+            complexity,
+            status,
+            productivityStatisticsId,
         };
 
-        fetch('http://localhost:8080/task/add', {
-            method: 'POST',
+        fetch("http://localhost:8080/tasks", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
-            },
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },        
             body: JSON.stringify(data),
         })
-            .then(response => response.json())
-            .then(data => {
-                alert("Успех");
-                console.log('Success:', data);
+            .then((response) => response.json())
+            .then(() => {
+                alert("Task added successfully");
+                window.location.reload(); // To refresh the task list
             })
             .catch((error) => {
-                alert('Error: ' + error);
-                console.error('Error:', error);
-            });    };
+                alert("Error: " + error);
+            });
+    };
 
     return (
         <form onSubmit={handleFormSubmit}>
-            <div className="form-group">
-                <label htmlFor="startDate">startDate</label>
-                <input type="date" className="form-control" id="startDate" value={startDate}
-                       onChange={e => setStartDate(e.target.value)}/>
+            <div>
+                <label>Start Date:</label>
+                <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                />
             </div>
-            <div className="form-group">
-                <label htmlFor="endDate">endDate</label>
-                <input type="date" className="form-control" id="endDate" value={endDate}
-                       onChange={e => setEndDate(e.target.value)}/>
+            <div>
+                <label>End Date:</label>
+                <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                />
             </div>
-            <div className="form-group">
-                <label htmlFor="complexity">complexity</label>
-                <input type={"number"} className="form-control" id="complexity" value={complexity}
-                       onChange={e => setComplexity(e.target.value)}/>
+            <div>
+                <label>Complexity:</label>
+                <input
+                    type="number"
+                    value={complexity}
+                    onChange={(e) => setComplexity(e.target.value)}
+                />
             </div>
-            <div className="form-group">
-                <label htmlFor="status">status</label>
-                <input className="form-control" id="status" value={status}
-                       onChange={e => setStatus(e.target.value)}/>
+            <div>
+                <label>Productivity ID:</label>
+                <input
+                    type="number"
+                    value={productivityStatisticsId}
+                    onChange={(e) => setProductivityStatisticsId(e.target.value)}
+                />
             </div>
-            <div className="form-group">
-                <label htmlFor="productivityStatisticsId">productivityStatisticsId</label>
-                <input type={"number"} className="form-control" id="productivityStatisticsId" value={productivityStatisticsId}
-                       onChange={e => setProductivityStatisticsId(e.target.value)}/>
-            </div>
-            <div className="form-group">
-                <button className="form-control btn btn-primary" type="submit">Submit</button>
-            </div>
+            <button type="submit">Submit</button>
         </form>
     );
 };
 
-export default function TaskTable() {
+export default function TaskBoard() {
     const [data, setData] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchData = () => {
-        fetch(`http://localhost:8080/task/all`)
+        fetch("http://localhost:8080/tasks", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },        
+        })
             .then((response) => response.json())
             .then((actualData) => {
-                console.log(actualData);
                 setData(actualData.taskResponses);
-                console.log(data);
             })
             .catch((err) => {
-                console.log(err.message);
+                console.error(err.message);
             });
     };
 
@@ -107,46 +164,51 @@ export default function TaskTable() {
         fetchData();
     }, []);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const handleStatusChange = (task, newStatus) => {
+        const updatedTask = { ...task, status: newStatus };
 
-    const openModal = () => {
-        setIsModalOpen(true);
+        fetch(`http://localhost:8080/tasks/${task.id}/${newStatus}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+        })
+            .then((response) => response.json())
+            .then(() => {
+                fetchData();
+            })
+            .catch((error) => {
+                console.error("Error updating task:", error);
+            });
     };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
+    const groupedTasks = {
+        "To Do": data.filter((task) => task.status === "To Do"),
+        "In Progress": data.filter((task) => task.status === "In Progress"),
+        Done: data.filter((task) => task.status === "Done"),
     };
 
     return (
-        <div className={"content-div"}>
-            <div className="left-div">
-            <p className="Table-header">Рабочие задачи</p>
-            <tbody>
-            <tr>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Complexity</th>
-                <th>Status</th>
-                <th>Productivity Statistics Id</th>
-            </tr>
-            {data.map((item, index) => (
-                <tr key={index}>
-                    <td>{item.startDate}</td>
-                    <td>{item.endDate}</td>
-                    <td>{item.complexity}</td>
-                    <td>{item.status}</td>
-                    <td>{item.productivityStatisticsId}</td>
-                </tr>
-            ))}
-            </tbody>
+        <DndProvider backend={HTML5Backend}>
+            <div className="task-board">
+                <div className="columns">
+                    {Object.keys(groupedTasks).map((status) => (
+                        <Column
+                            key={status}
+                            status={status}
+                            tasks={groupedTasks[status]}
+                            onDrop={handleStatusChange}
+                        />
+                    ))}
+                </div>
+                <button className="plus-button" onClick={() => setIsModalOpen(true)}>
+                    <img src={plusLogo} alt="Add Task" />
+                </button>
+                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                    <Form />
+                </Modal>
             </div>
-            <div className={"right-div"}>
-            <button onClick={openModal}><img src={plusLogo} alt="add entity"/></button>
-            <Modal isOpen={isModalOpen} onClose={closeModal}>
-                <Form/>
-            </Modal>
-            </div>
-        </div>
+        </DndProvider>
     );
-
 }
